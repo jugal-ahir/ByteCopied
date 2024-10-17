@@ -99,11 +99,15 @@ button:hover {
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .logo {
   max-height: 150px;  /* Adjust as needed */
   margin-right: 10px;
+  width: auto; /* Make sure the width scales properly */
+  max-width: 100%;
+  margin-top: 10px;
 }
 
 .bytebuilder-text {
@@ -153,6 +157,107 @@ button:hover {
   overflow-x: auto;
 }
 
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's above everything */
+}
+
+.modal-content {
+  background: #1A1A1D;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  width: 300px;
+}
+
+.modal-content h2 {
+  color: #BBE0EF;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.modal-content p {
+  color: white;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.modal-content .confirm {
+  background-color: #E94057;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.modal-content .cancel {
+  background-color: #2C2C2C;
+  padding: 10px 20px;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-content .confirm:hover {
+  background-color: #B12A4B;
+}
+
+.modal-content .cancel:hover {
+  background-color: #444444;
+}
+
+
+/* Typewriter Animation */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 12ch; } /* Adjust '10ch' based on the length of "ByteCopied" */
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: white; }
+}
+
+.intro-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000000;
+  z-index: 9999; /* Ensure it's on top of everything */
+}
+
+.typewriter {
+  font-family: 'Syne Mono', monospace;
+  font-size: 3rem;
+  color: #BBE0EF;
+  overflow: hidden; /* Ensures the text is hidden during the typing effect */
+  white-space: nowrap;
+  border-right: 3px solid white;
+  width: 0; /* Initially the width is 0 */
+  animation: typing 2s steps(12), blink-caret 0.75s step-end infinite;
+}
+
+
+
+
 /* Responsive Styles */
 @media only screen and (max-width: 768px) {
   .app {
@@ -182,6 +287,15 @@ button:hover {
     font-size: 1.5rem;
   }
 
+  .logo {
+    max-height: 100px;  /* Smaller logo for smaller screens */
+    margin-bottom: 10px;
+  }
+
+  .bytebuilder-text {
+    font-size: 1.2rem; /* Reduce font size for small screens */
+  }
+
   button {
     padding: 10px 15px;
     font-size: 1rem;
@@ -200,6 +314,15 @@ button:hover {
 
   .snippet h3 {
     font-size: 1.2rem;
+  }
+  
+  .logo {
+    max-height: 80px;  /* Even smaller logo for very small screens */
+    margin-bottom: 8px;
+  }
+
+  .bytebuilder-text {
+    font-size: 1rem; /* Further reduce font size */
   }
 
   button {

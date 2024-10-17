@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Prism from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';  // Prism.js theme
-import 'prismjs/components/prism-javascript'; // JavaScript syntax highlighting
-import 'prismjs/components/prism-css';        // CSS syntax highlighting
-import 'prismjs/components/prism-markup';     // HTML syntax highlighting
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-markup';
 
 const App = () => {
   const [snippets, setSnippets] = useState(() => {
@@ -15,21 +15,40 @@ const App = () => {
   const [code, setCode] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [titleError, setTitleError] = useState(''); 
-  const [codeError, setCodeError] = useState('');   
+  const [showIntro, setShowIntro] = useState(true);
+  const [titleError, setTitleError] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [snippetToDelete, setSnippetToDelete] = useState(null); // State for snippet to be deleted
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // Modal visibility state
 
   useEffect(() => {
     localStorage.setItem('snippets', JSON.stringify(snippets));
   }, [snippets]);
 
   useEffect(() => {
-    Prism.highlightAll();  // Highlight the code when the component is updated
-  }, [snippets]);  // Run this whenever snippets change
+    if (!showIntro) {
+      Prism.highlightAll();
+    }
+  }, [snippets, showIntro]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Highlighting on search term change
+  useEffect(() => {
+    if (!showIntro) {
+      Prism.highlightAll();
+    }
+  }, [searchTerm, showIntro]);
 
   const validateForm = () => {
     let isValid = true;
-    setTitleError(''); 
-    setCodeError('');  
+    setTitleError('');
+    setCodeError('');
 
     if (title.trim() === '') {
       setTitleError('Please provide the title');
@@ -65,8 +84,19 @@ const App = () => {
     setCode('');
   };
 
-  const deleteSnippet = (id) => {
-    setSnippets(snippets.filter(snippet => snippet.id !== id));
+  const handleDelete = (id) => {
+    setSnippetToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    setSnippets(snippets.filter(snippet => snippet.id !== snippetToDelete));
+    setShowDeleteModal(false);
+  };
+
+  const cancelDelete = () => {
+    setSnippetToDelete(null);
+    setShowDeleteModal(false);
   };
 
   const copyToClipboard = (text) => {
@@ -79,70 +109,88 @@ const App = () => {
   );
 
   return (
-    <div className="app">
-      <div className="header">
-        <img 
-          src="https://ahduni.edu.in/site/assets/files/1/default_logo_final_png.1400x0.webp"  // Replace with the correct URL
-          alt="University Logo" 
-          className="logo" 
-        />
-        <span className="bytebuilder-text"> | ByteBuilder</span>
-      </div>
-      <h1>ByteCopied </h1>
+    <div>
+      {showIntro && (
+        <div className="intro-screen">
+          <h1 className="typewriter">ByteCopied</h1>
+        </div>
+      )}
       
-      {/* Form for adding/editing snippets */}
-      <div className="form">
-        <input
-          type="text"
-          placeholder="Give the title of your code here..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        {titleError && <div className="error">{titleError}</div>}
-        
-        <textarea
-          placeholder="Write Your Code Here..."
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-        ></textarea>
-        {codeError && <div className="error">{codeError}</div>}
-        
-        <button onClick={editingId ? updateSnippet : addSnippet}>
-          {editingId ? 'Update Snippet' : 'Add Code'}
-        </button>
-      </div>
+      {!showIntro && (
+        <div className="app">
+          <div className="header">
+            <img 
+              src="https://ahduni.edu.in/site/assets/files/1/default_logo_final_png.1400x0.webp"  
+              alt="University Logo" 
+              className="logo" 
+            />
+            <span className="bytebuilder-text"> | ByteBuilder</span>
+          </div>
+          <h1>ByteCopied</h1>
 
-      {/* Search bar for filtering snippets */}
-      <input
-        type="text"
-        className="search-bar"
-        placeholder="Search codes..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+          <div className="form">
+            <input
+              type="text"
+              placeholder="Give the title of your code here..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            {titleError && <div className="error">{titleError}</div>}
+            
+            <textarea
+              placeholder="Write Your Code Here..."
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            ></textarea>
+            {codeError && <div className="error">{codeError}</div>}
+            
+            <button onClick={editingId ? updateSnippet : addSnippet}>
+              {editingId ? 'Update Snippet' : 'Add Code'}
+            </button>
+          </div>
 
-      {/* Display snippets with Prism.js syntax highlighting */}
-      <div className="snippets">
-        {filteredSnippets.length > 0 ? (
-          filteredSnippets.map(snippet => (
-            <div key={snippet.id} className="snippet">
-              <h3>{snippet.title}</h3>
-              <pre>
-                <code className="language-javascript">
-                  {snippet.code}
-                </code>
-              </pre>
-              <div className="actions">
-                <button onClick={() => copyToClipboard(snippet.code)}>Copy</button>
-                <button onClick={() => { setEditingId(snippet.id); setTitle(snippet.title); setCode(snippet.code); }}>Edit</button>
-                <button onClick={() => deleteSnippet(snippet.id)}>Delete</button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-data">No Data Found</div>
-        )}
-      </div>
+          <input
+            type="text"
+            className="search-bar"
+            placeholder="Search codes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <div className="snippets">
+            {filteredSnippets.length > 0 ? (
+              filteredSnippets.map(snippet => (
+                <div key={snippet.id} className="snippet">
+                  <h3>{snippet.title}</h3>
+                  <pre>
+                    <code className="language-javascript">
+                      {snippet.code}
+                    </code>
+                  </pre>
+                  <div className="actions">
+                    <button onClick={() => copyToClipboard(snippet.code)}>Copy</button>
+                    <button onClick={() => { setEditingId(snippet.id); setTitle(snippet.title); setCode(snippet.code); }}>Edit</button>
+                    <button onClick={() => handleDelete(snippet.id)}>Delete</button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-data">No Data Found</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this snippet?</p>
+            <button onClick={confirmDelete} className="confirm">Yes, Delete</button>
+            <button onClick={cancelDelete} className="cancel">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
