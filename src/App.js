@@ -5,6 +5,9 @@ import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-css';
 import 'prismjs/components/prism-markup';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 const App = () => {
   const [snippets, setSnippets] = useState(() => {
@@ -72,6 +75,37 @@ const App = () => {
     setTitle('');
     setCode('');
   };
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+  
+    doc.setFontSize(12);
+    doc.text('My Snippets List', 10, 10);
+  
+    const rows = snippets.map((snippet, index) => [
+      `${index + 1}. ${snippet.title}`,
+      snippet.code
+    ]);
+  
+    // Use autoTable to create a table in the PDF
+    doc.autoTable({
+      head: [['Snippet Title', 'Code']],
+      body: rows,
+      startY: 20,
+      theme: 'grid', // You can customize the theme as needed
+      styles: { 
+        cellPadding: 5,
+        fontSize: 10,
+        overflow: 'linebreak',
+        rowHeight: 10,
+      },
+    });
+  
+    doc.save('my_snippets.pdf');
+  };
+  
+  
+  
 
   const updateSnippet = () => {
     if (!validateForm()) {
@@ -156,6 +190,9 @@ const App = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+
+<button onClick={downloadPDF} className="download-button">Download Snippets</button>
+
 
           <div className="snippets">
             {filteredSnippets.length > 0 ? (
