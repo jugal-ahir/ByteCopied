@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Ensure API URL always ends with /api
+const getApiUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  // If URL doesn't end with /api, append it
+  if (envUrl && !envUrl.endsWith('/api')) {
+    return envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
+  }
+  return envUrl;
+};
+
+const API_URL = getApiUrl();
 
 const createApiInstance = (getAuthHeaders) => {
   const instance = axios.create({
