@@ -55,8 +55,13 @@ export default function Attendance() {
         }
         
         const now = new Date();
-        const elapsed = Math.floor((now - startedAt) / 1000);
-        const remaining = Math.max(0, activeSession.timerDuration - elapsed);
+        const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+        
+        // Clamp elapsed time to be non-negative (in case client clock is behind)
+        const validElapsed = Math.max(0, elapsed);
+        
+        // Calculate remaining time and ensure it doesn't exceed timer duration
+        const remaining = Math.max(0, Math.min(activeSession.timerDuration, activeSession.timerDuration - validElapsed));
         setTimeRemaining(remaining);
         
         return remaining;

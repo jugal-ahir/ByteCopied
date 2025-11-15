@@ -45,7 +45,8 @@ const generateAttendancePDF = (
   section,
   submittedRollNumbers,
   allRollNumbers,
-  timerDuration
+  timerDuration,
+  startedAt
 ) => {
   return new Promise((resolve, reject) => {
     try {
@@ -112,16 +113,19 @@ const generateAttendancePDF = (
         .stroke()
         .fillColor(textColor);
 
-      const currentDate = new Date();
-      const dateStr = currentDate.toLocaleDateString('en-US', { 
+      // Use the session's startedAt time instead of current time
+      const sessionDate = startedAt ? new Date(startedAt) : new Date();
+      const dateStr = sessionDate.toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
-        day: 'numeric' 
+        day: 'numeric',
+        timeZone: 'Asia/Kolkata' // Use IST timezone for consistency
       });
-      const timeStr = currentDate.toLocaleTimeString('en-US', { 
+      const timeStr = sessionDate.toLocaleTimeString('en-US', { 
         hour: '2-digit', 
-        minute: '2-digit' 
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata' // Use IST timezone for consistency
       });
 
       doc.fontSize(11)
@@ -506,7 +510,8 @@ router.post(
           session.section,
           submittedRollNumbers,
           allRollNumbers,
-          session.timerDuration
+          session.timerDuration,
+          session.startedAt
         );
       } catch (pdfError) {
         console.error('Error generating PDF:', pdfError);
