@@ -418,11 +418,9 @@ export default function Snippets() {
                           sx={{
                             fontWeight: 600,
                             mb: 1,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
                           }}
-                          title={snippet.title}
                         >
                           {snippet.title}
                         </Typography>
