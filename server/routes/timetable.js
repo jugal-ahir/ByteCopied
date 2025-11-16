@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Course = require('../models/Course');
 const authenticateToken = require('../middleware/auth');
+const PDFDocument = require('pdfkit');
 
 // Get all courses for the logged-in user
 router.get('/courses', authenticateToken, async (req, res) => {
@@ -257,6 +258,166 @@ function getRandomColor() {
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
+
+// Download timetable as PDF
+router.get('/download/pdf', authenticateToken, async (req, res) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const courses = await Course.find({ createdBy: req.user.userId }).sort({ courseCode: 1, section: 1 });
+
+      const doc = new PDFDocument({ 
+        margin: 50,
+        size: 'A4',
+        info: {
+          Title: 'Timetable',
+          Author: 'ByteCopied',
+          Subject: 'Class Timetable',
+        }
+      });
+      const chunks = [];
+
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      // Colors
+      const primaryColor = '#6366f1';
+      const textColor = '#1f2937';
+      const lightGray = '#f3f4f6';
+      const borderColor = '#e5e7eb';
+
+      // Header
+      const headerHeight = 60;
+      doc.rect(50, 50, 495, headerHeight)
+        .fillColor(primaryColor)
+        .fill()
+        .fillColor('#ffffff')
+        .fontSize(24)
+        .font('Helvetica-Bold')
+        .text('CLASS TIMETABLE', 50, 70, { 
+          width: 495, 
+          align: 'center',
+        });
+
+      doc.fillColor(textColor);
+      let yPos = 130;
+
+      // Course list
+      if (courses.length === 0) {
+        doc.fontSize(14)
+          .text('No courses added to timetable', 50, yPos, { align: 'center' });
+      } else {
+        // Group courses by day for better organization
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        days.forEach(day => {
+          const dayCourses = [];
+          courses.forEach(course => {
+            course.timings.forEach(timing => {
+              if (timing.day === day) {
+                dayCourses.push({
+                  courseCode: course.courseCode,
+                  courseName: course.courseName,
+                  section: course.section,
+                  startTime: timing.startTime,
+                  endTime: timing.endTime,
+                });
+              }
+            });
+          });
+
+          if (dayCourses.length > 0) {
+            // Day header
+            if (yPos > 700) {
+              doc.addPage();
+              yPos = 50;
+            }
+
+            doc.fontSize(16)
+              .font('Helvetica-Bold')
+              .fillColor(primaryColor)
+              .text(day, 50, yPos);
+            
+            yPos += 25;
+
+            // Course boxes for this day
+            dayCourses.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            
+            dayCourses.forEach(course => {
+              if (yPos > 750) {
+                doc.addPage();
+                yPos = 50;
+              }
+
+              const boxHeight = 40;
+              doc.rect(50, yPos, 495, boxHeight)
+                .fillColor(lightGray)
+                .fill()
+                .strokeColor(borderColor)
+                .lineWidth(1)
+                .stroke()
+                .fillColor(textColor);
+
+              doc.fontSize(12)
+                .font('Helvetica-Bold')
+                .text(course.courseCode, 60, yPos + 8)
+                .font('Helvetica')
+                .fontSize(10)
+                .text(`Section ${course.section}`, 60, yPos + 22)
+                .fontSize(11)
+                .text(course.courseName, 150, yPos + 8, { width: 250 })
+                .font('Helvetica-Bold')
+                .text(`${course.startTime} - ${course.endTime}`, 420, yPos + 12, { width: 100, align: 'right' });
+
+              yPos += boxHeight + 5;
+            });
+
+            yPos += 10;
+          }
+        });
+      }
+
+      // End document
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  }).then((pdfBuffer) => {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=timetable.pdf');
+    res.send(pdfBuffer);
+  }).catch((error) => {
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: 'Failed to generate PDF file' });
+  });
+});
+
+// Download timetable as CSV
+router.get('/download/csv', authenticateToken, async (req, res) => {
+  try {
+    const courses = await Course.find({ createdBy: req.user.userId }).sort({ courseCode: 1, section: 1 });
+
+    // CSV header
+    let csv = 'Course Code,Course Name,Section,Day,Start Time,End Time\n';
+
+    // Add course data
+    courses.forEach(course => {
+      course.timings.forEach(timing => {
+        csv += `"${course.courseCode}","${course.courseName}","${course.section}","${timing.day}","${timing.startTime}","${timing.endTime}"\n`;
+      });
+    });
+
+    // Set response headers
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=timetable.csv');
+
+    // Send CSV
+    res.send(csv);
+  } catch (error) {
+    console.error('Error generating CSV:', error);
+    res.status(500).json({ error: 'Failed to generate CSV file' });
+  }
+});
 
 module.exports = router;
 

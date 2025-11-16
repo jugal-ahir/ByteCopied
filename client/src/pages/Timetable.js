@@ -31,8 +31,10 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import WarningIcon from '@mui/icons-material/Warning';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useAuth } from '../contexts/AuthContext';
 import createApiInstance from '../services/api';
+import { saveAs } from 'file-saver';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
@@ -180,6 +182,76 @@ export default function Timetable() {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await api.get('/timetable/download/pdf', {
+        responseType: 'blob',
+      });
+
+      // Check if response is actually a PDF or an error JSON
+      const contentType = response.headers['content-type'] || '';
+      
+      if (contentType.includes('application/json')) {
+        const text = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsText(response.data);
+        });
+        
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.error || 'Failed to download PDF file');
+        } catch (parseError) {
+          throw new Error('Failed to download PDF file. Invalid response from server.');
+        }
+      }
+
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      saveAs(blob, `timetable_${Date.now()}.pdf`);
+      setSuccess('Timetable downloaded as PDF!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      setError(error.message || 'Failed to download PDF file');
+    }
+  };
+
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await api.get('/timetable/download/csv', {
+        responseType: 'blob',
+      });
+
+      // Check if response is actually a file or an error JSON
+      const contentType = response.headers['content-type'] || '';
+      
+      if (contentType.includes('application/json')) {
+        const text = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsText(response.data);
+        });
+        
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.error || 'Failed to download CSV file');
+        } catch (parseError) {
+          throw new Error('Failed to download CSV file. Invalid response from server.');
+        }
+      }
+
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      saveAs(blob, `timetable_${Date.now()}.csv`);
+      setSuccess('Timetable downloaded as CSV!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      setError(error.message || 'Failed to download CSV file');
+    }
+  };
+
   // Generate timetable grid
   const generateTimetableGrid = () => {
     const grid = {};
@@ -251,17 +323,57 @@ export default function Timetable() {
           >
             📅 Timetable Manager
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{
-              borderRadius: 2,
-              fontWeight: 600,
-            }}
-          >
-            Add Course
-          </Button>
+          <Box display="flex" gap={1} flexWrap="wrap">
+            {courses.length > 0 && (
+              <>
+                <Button
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownloadPDF}
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    borderColor: '#ef4444',
+                    color: '#ef4444',
+                    '&:hover': {
+                      borderColor: '#dc2626',
+                      background: 'rgba(239, 68, 68, 0.05)',
+                    },
+                  }}
+                >
+                  PDF
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownloadCSV}
+                  sx={{
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    borderColor: '#3b82f6',
+                    color: '#3b82f6',
+                    '&:hover': {
+                      borderColor: '#2563eb',
+                      background: 'rgba(59, 130, 246, 0.05)',
+                    },
+                  }}
+                >
+                  CSV
+                </Button>
+              </>
+            )}
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 600,
+              }}
+            >
+              Add Course
+            </Button>
+          </Box>
         </Box>
 
         {conflicts.length > 0 && (
@@ -356,11 +468,14 @@ export default function Timetable() {
                                 border: hasConflict ? '2px solid #ef4444' : 'none',
                               }}
                             >
-                              <Box>{item.course.courseCode}</Box>
-                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9 }}>
+                              <Box sx={{ fontWeight: 600 }}>{item.course.courseCode}</Box>
+                              <Box sx={{ fontSize: '0.65rem', opacity: 0.95, lineHeight: 1.2, mt: 0.25 }}>
+                                {item.course.courseName}
+                              </Box>
+                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9, mt: 0.25 }}>
                                 Sec {item.course.section}
                               </Box>
-                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9 }}>
+                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9, mt: 0.25 }}>
                                 {item.timing.startTime} - {item.timing.endTime}
                               </Box>
                             </Box>
