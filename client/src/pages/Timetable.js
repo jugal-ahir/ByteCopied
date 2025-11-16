@@ -256,11 +256,14 @@ export default function Timetable() {
     }
   };
 
-  // Generate timetable grid
+  // Generate timetable grid with merged cell support
   const generateTimetableGrid = () => {
     const grid = {};
+    const cellSpans = {}; // Track rowSpan for each cell
+    
     DAYS.forEach(day => {
       grid[day] = Array(24).fill(null).map(() => []);
+      cellSpans[day] = Array(24).fill(null).map(() => ({}));
     });
 
     courses.forEach(course => {
@@ -270,30 +273,39 @@ export default function Timetable() {
         const startMin = parseInt(timing.startTime.split(':')[1]);
         const endMin = parseInt(timing.endTime.split(':')[1]);
 
-        // Calculate which time slots this course occupies
-        const startSlot = startHour + (startMin >= 30 ? 0.5 : 0);
-        const endSlot = endHour + (endMin > 30 ? 1 : endMin > 0 ? 0.5 : 0);
+        // Calculate duration in hours (can be fractional)
+        const startTimeMinutes = startHour * 60 + startMin;
+        const endTimeMinutes = endHour * 60 + endMin;
+        const durationHours = (endTimeMinutes - startTimeMinutes) / 60;
 
-        for (let slot = Math.floor(startSlot * 2); slot < Math.floor(endSlot * 2); slot++) {
-          if (slot >= 0 && slot < 48) {
-            const hour = Math.floor(slot / 2);
-            if (grid[timing.day] && grid[timing.day][hour]) {
-              grid[timing.day][hour].push({
-                course,
-                timing,
-                startSlot,
-                endSlot,
-              });
-            }
+        // Calculate which hour slot this course starts at
+        if (startHour >= 0 && startHour < 24) {
+          const courseData = {
+            course,
+            timing,
+            durationHours,
+            startHour,
+            endHour,
+            startMin,
+            endMin,
+          };
+
+          // Only add to the starting hour slot
+          if (grid[timing.day] && grid[timing.day][startHour]) {
+            grid[timing.day][startHour].push(courseData);
+            
+            // Calculate rowSpan (number of hours to span, minimum 1)
+            const rowSpan = Math.max(1, Math.ceil(durationHours));
+            cellSpans[timing.day][startHour][course._id] = rowSpan;
           }
         }
       });
     });
 
-    return grid;
+    return { grid, cellSpans };
   };
 
-  const timetableGrid = generateTimetableGrid();
+  const { grid: timetableGrid, cellSpans } = generateTimetableGrid();
 
   // Check if a course has conflicts
   const getCourseConflicts = (courseId) => {
@@ -455,85 +467,121 @@ export default function Timetable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {TIME_SLOTS.map((time, hourIndex) => (
-                <TableRow key={time}>
-                  <TableCell sx={{ 
-                    fontWeight: 500, 
-                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                    position: 'sticky',
-                    left: 0,
-                    zIndex: 9,
-                    bgcolor: 'background.paper',
-                    borderRight: '2px solid rgba(0,0,0,0.1)',
-                  }}>
-                    {time}
-                  </TableCell>
-                  {DAYS.map(day => {
-                    const coursesInSlot = timetableGrid[day]?.[hourIndex] || [];
-                    const uniqueCourses = [];
-                    const seen = new Set();
-                    
-                    coursesInSlot.forEach(item => {
-                      if (!seen.has(item.course._id)) {
-                        seen.add(item.course._id);
-                        uniqueCourses.push(item);
+              {TIME_SLOTS.map((time, hourIndex) => {
+                // Helper function to check if a cell should be skipped
+                const shouldSkipCell = (day) => {
+                  for (let prevHour = 0; prevHour < hourIndex; prevHour++) {
+                    const prevCourses = timetableGrid[day]?.[prevHour] || [];
+                    for (const prevItem of prevCourses) {
+                      const prevRowSpan = cellSpans[day]?.[prevHour]?.[prevItem.course._id] || 1;
+                      // If a course from a previous hour spans into this hour, skip this cell
+                      if (prevHour + prevRowSpan > hourIndex) {
+                        return true;
                       }
-                    });
+                    }
+                  }
+                  return false;
+                };
 
-                    return (
-                      <TableCell
-                        key={day}
-                        sx={{
-                          p: 0.5,
-                          verticalAlign: 'top',
-                          border: '1px solid rgba(0,0,0,0.1)',
-                          minHeight: 60,
-                        }}
-                      >
-                        {uniqueCourses.map((item, idx) => {
-                          const courseConflicts = getCourseConflicts(item.course._id);
-                          const hasConflict = courseConflicts.length > 0;
-                          
-                          return (
-                            <Box
-                              key={idx}
-                              sx={{
-                                bgcolor: hasConflict ? '#fee2e2' : item.course.color,
-                                color: 'white',
-                                p: 0.5,
-                                mb: 0.5,
-                                borderRadius: 1,
-                                fontSize: '0.7rem',
-                                fontWeight: 500,
-                                border: hasConflict ? '2px solid #ef4444' : 'none',
-                              }}
-                            >
-                              <Box sx={{ fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                                {item.course.courseCode}
+                return (
+                  <TableRow key={time}>
+                    <TableCell sx={{ 
+                      fontWeight: 500, 
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 9,
+                      bgcolor: 'background.paper',
+                      borderRight: '2px solid rgba(0,0,0,0.1)',
+                    }}>
+                      {time}
+                    </TableCell>
+                    {DAYS.map(day => {
+                      // Skip this cell if it's part of a merged cell from a previous row
+                      if (shouldSkipCell(day)) {
+                        return null;
+                      }
+
+                      const coursesInSlot = timetableGrid[day]?.[hourIndex] || [];
+                      const uniqueCourses = [];
+                      const seen = new Set();
+                      
+                      coursesInSlot.forEach(item => {
+                        if (!seen.has(item.course._id)) {
+                          seen.add(item.course._id);
+                          uniqueCourses.push(item);
+                        }
+                      });
+
+                      // Get the rowSpan for the first course (if multiple courses, use the max)
+                      const rowSpan = uniqueCourses.length > 0 ? 
+                        Math.max(...uniqueCourses.map(item => cellSpans[day]?.[hourIndex]?.[item.course._id] || 1)) : 
+                        1;
+
+                      return (
+                        <TableCell
+                          key={day}
+                          sx={{
+                            p: 0.5,
+                            verticalAlign: 'middle',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            minHeight: 60,
+                            position: 'relative',
+                          }}
+                          rowSpan={uniqueCourses.length > 0 ? rowSpan : 1}
+                        >
+                          {uniqueCourses.map((item, idx) => {
+                            const courseConflicts = getCourseConflicts(item.course._id);
+                            const hasConflict = courseConflicts.length > 0;
+                            const itemRowSpan = cellSpans[day]?.[hourIndex]?.[item.course._id] || 1;
+                            
+                            return (
+                              <Box
+                                key={idx}
+                                sx={{
+                                  bgcolor: hasConflict ? '#fee2e2' : item.course.color,
+                                  color: 'white',
+                                  p: 0.5,
+                                  borderRadius: 1,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 500,
+                                  border: hasConflict ? '2px solid #ef4444' : 'none',
+                                  height: itemRowSpan > 1 ? `calc(100% - 4px)` : 'auto',
+                                  minHeight: itemRowSpan > 1 ? `${itemRowSpan * 60 - 8}px` : 'auto',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
+                                  textAlign: 'center',
+                                }}
+                              >
+                                <Box sx={{ fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                                  {item.course.courseCode}
+                                </Box>
+                                <Box sx={{ 
+                                  fontSize: { xs: '0.55rem', sm: '0.65rem' }, 
+                                  opacity: 0.95, 
+                                  lineHeight: 1.2, 
+                                  mt: 0.25,
+                                  display: { xs: 'none', sm: 'block' }
+                                }}>
+                                  {item.course.courseName}
+                                </Box>
+                                <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
+                                  Sec {item.course.section}
+                                </Box>
+                                <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
+                                  {item.timing.startTime} - {item.timing.endTime}
+                                </Box>
                               </Box>
-                              <Box sx={{ 
-                                fontSize: { xs: '0.55rem', sm: '0.65rem' }, 
-                                opacity: 0.95, 
-                                lineHeight: 1.2, 
-                                mt: 0.25,
-                                display: { xs: 'none', sm: 'block' }
-                              }}>
-                                {item.course.courseName}
-                              </Box>
-                              <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
-                                Sec {item.course.section}
-                              </Box>
-                              <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
-                                {item.timing.startTime} - {item.timing.endTime}
-                              </Box>
-                            </Box>
-                          );
-                        })}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
+                            );
+                          })}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
