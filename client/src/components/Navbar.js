@@ -34,10 +34,13 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useThemeMode } from '../contexts/ThemeContext';
+import { useTheme } from '@mui/material/styles';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { currentUser, logout, isAdmin } = useAuth();
   const { mode, toggleMode } = useThemeMode();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -492,8 +495,11 @@ export default function Navbar() {
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 280,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%)'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
             backdropFilter: 'blur(20px)',
+            color: isDark ? '#f8fafc' : '#1e293b',
           },
         }}
       >
@@ -539,16 +545,23 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
                   borderLeft: '4px solid #6366f1',
+                  color: isDark ? '#e0e7ff' : '#6366f1',
+                },
+                '&:hover': {
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                 },
               }}
             >
               <ListItemIcon>
-                <DashboardIcon sx={{ color: location.pathname === '/' ? '#6366f1' : '#64748b' }} />
+                <DashboardIcon sx={{ color: location.pathname === '/' ? '#6366f1' : (isDark ? '#cbd5e1' : '#64748b') }} />
               </ListItemIcon>
-              <ListItemText primary="Dashboard" />
+              <ListItemText primary="Dashboard" primaryTypographyProps={{ sx: { color: 'inherit' } }} />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -561,16 +574,23 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
                   borderLeft: '4px solid #6366f1',
+                  color: isDark ? '#e0e7ff' : '#6366f1',
+                },
+                '&:hover': {
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                 },
               }}
             >
               <ListItemIcon>
-                <Code sx={{ color: location.pathname === '/snippets' ? '#6366f1' : '#64748b' }} />
+                <Code sx={{ color: location.pathname === '/snippets' ? '#6366f1' : (isDark ? '#cbd5e1' : '#64748b') }} />
               </ListItemIcon>
-              <ListItemText primary="Snippets" />
+              <ListItemText primary="Snippets" primaryTypographyProps={{ sx: { color: 'inherit' } }} />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -583,16 +603,23 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(219, 39, 119, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
                   borderLeft: '4px solid #ec4899',
+                  color: isDark ? '#fbcfe8' : '#ec4899',
+                },
+                '&:hover': {
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                 },
               }}
             >
               <ListItemIcon>
-                <People sx={{ color: location.pathname === '/attendance' ? '#ec4899' : '#64748b' }} />
+                <People sx={{ color: location.pathname === '/attendance' ? '#ec4899' : (isDark ? '#cbd5e1' : '#64748b') }} />
               </ListItemIcon>
-              <ListItemText primary="Attendance" />
+              <ListItemText primary="Attendance" primaryTypographyProps={{ sx: { color: 'inherit' } }} />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
@@ -605,20 +632,27 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
                   borderLeft: '4px solid #6366f1',
+                  color: isDark ? '#e0e7ff' : '#6366f1',
+                },
+                '&:hover': {
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                 },
               }}
             >
               <ListItemIcon>
-                <CalendarToday sx={{ color: location.pathname === '/timetable' ? '#6366f1' : '#64748b' }} />
+                <CalendarToday sx={{ color: location.pathname === '/timetable' ? '#6366f1' : (isDark ? '#cbd5e1' : '#64748b') }} />
               </ListItemIcon>
-              <ListItemText primary="Timetable" />
+              <ListItemText primary="Timetable" primaryTypographyProps={{ sx: { color: 'inherit' } }} />
             </ListItemButton>
           </ListItem>
         </List>
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ my: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }} />
         <List>
           <ListItem disablePadding>
             <ListItemButton
@@ -626,8 +660,11 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
                 },
               }}
             >
@@ -636,7 +673,7 @@ export default function Navbar() {
               </ListItemIcon>
               <ListItemText 
                 primary={mode === 'dark' ? 'Light Mode' : 'Dark Mode'} 
-                primaryTypographyProps={{ sx: { fontWeight: 600 } }} 
+                primaryTypographyProps={{ sx: { fontWeight: 600, color: 'inherit' } }} 
               />
             </ListItemButton>
           </ListItem>
@@ -646,8 +683,11 @@ export default function Navbar() {
               sx={{
                 py: 1.5,
                 px: 3,
+                color: isDark ? '#f8fafc' : '#1e293b',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
                 },
               }}
             >
