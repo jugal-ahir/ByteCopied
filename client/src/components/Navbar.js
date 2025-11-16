@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   Box,
-  IconButton,
   Menu,
   MenuItem,
   Avatar,
@@ -23,6 +22,7 @@ import {
   Logout,
   AdminPanelSettings,
   School,
+  CalendarToday,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -181,6 +181,13 @@ export default function Navbar() {
             sx={getNavButtonStyles(location.pathname === '/attendance')}
           >
             Attendance
+          </Button>
+          <Button
+            onClick={() => navigate('/timetable')}
+            startIcon={<CalendarToday sx={{ fontSize: 18 }} />}
+            sx={getNavButtonStyles(location.pathname === '/timetable')}
+          >
+            Timetable
           </Button>
         </Box>
 

@@ -595,21 +595,35 @@ router.get('/sessions', authenticateToken, async (req, res) => {
       hasSubmitted = !!submission;
     }
 
-    const formattedSessions = sessions.map(session => ({
-      id: session._id,
-      section: session.section,
-      timerDuration: session.timerDuration,
-      totalStudents: session.totalStudents,
-      startedBy: session.startedBy,
-      status: session.status,
-      presentCount: session.presentCount,
-      absentCount: session.absentCount,
-      startedAt: session.startedAt,
-      endedAt: session.endedAt,
-      createdAt: session.createdAt,
-      updatedAt: session.updatedAt,
-      hasSubmitted: role !== 'admin' ? hasSubmitted : undefined,
-    }));
+    const formattedSessions = sessions.map(session => {
+      // Calculate remaining time on server using server's current time
+      let timeRemaining = 0;
+      if (session.status === 'active' && session.startedAt) {
+        const now = new Date();
+        const startedAt = new Date(session.startedAt);
+        const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+        const validElapsed = Math.max(0, elapsed);
+        timeRemaining = Math.max(0, Math.min(session.timerDuration, session.timerDuration - validElapsed));
+      }
+      
+      return {
+        id: session._id,
+        section: session.section,
+        timerDuration: session.timerDuration,
+        totalStudents: session.totalStudents,
+        startedBy: session.startedBy,
+        status: session.status,
+        presentCount: session.presentCount,
+        absentCount: session.absentCount,
+        startedAt: session.startedAt,
+        endedAt: session.endedAt,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+        hasSubmitted: role !== 'admin' ? hasSubmitted : undefined,
+        timeRemaining: session.status === 'active' ? timeRemaining : 0,
+        serverTime: new Date().toISOString(), // Include server time for reference
+      };
+    });
 
     res.json(formattedSessions);
   } catch (error) {

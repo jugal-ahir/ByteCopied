@@ -38,11 +38,35 @@ export default function Attendance() {
 
   const api = createApiInstance(getAuthHeaders);
 
-  // Timer effect - recalculate from server time to keep synchronized
+  // Timer effect - use server-calculated timeRemaining and countdown locally
   useEffect(() => {
-    if (activeSession && activeSession.startedAt) {
-      const updateTimer = () => {
-        // Calculate remaining time based on server's startedAt timestamp
+    if (activeSession && activeSession.status === 'active') {
+      // Use server-provided timeRemaining if available (most accurate)
+      if (activeSession.timeRemaining !== undefined) {
+        setTimeRemaining(activeSession.timeRemaining);
+        
+        // Store when we received this value to calculate countdown
+        const receivedAt = activeSession.serverTime ? new Date(activeSession.serverTime) : new Date();
+        const serverTimeRemaining = activeSession.timeRemaining;
+        
+        // Countdown locally, refreshing from server periodically
+        const timer = setInterval(() => {
+          const now = new Date();
+          const elapsedSinceUpdate = Math.floor((now.getTime() - receivedAt.getTime()) / 1000);
+          const newRemaining = Math.max(0, serverTimeRemaining - elapsedSinceUpdate);
+          setTimeRemaining(newRemaining);
+          
+          if (newRemaining <= 0) {
+            clearInterval(timer);
+            // Refresh from server to get updated status
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            fetchActiveSessions();
+          }
+        }, 1000);
+
+        return () => clearInterval(timer);
+      } else {
+        // Fallback: calculate from startedAt if server timeRemaining not available
         let startedAt;
         if (activeSession.startedAt?.toDate) {
           startedAt = activeSession.startedAt.toDate();
@@ -54,32 +78,29 @@ export default function Attendance() {
           startedAt = new Date(activeSession.startedAt);
         }
         
-        const now = new Date();
-        const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
-        
-        // Clamp elapsed time to be non-negative (in case client clock is behind)
-        const validElapsed = Math.max(0, elapsed);
-        
-        // Calculate remaining time and ensure it doesn't exceed timer duration
-        const remaining = Math.max(0, Math.min(activeSession.timerDuration, activeSession.timerDuration - validElapsed));
-        setTimeRemaining(remaining);
-        
-        return remaining;
-      };
+        const updateTimer = () => {
+          const now = new Date();
+          const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+          const validElapsed = Math.max(0, elapsed);
+          const remaining = Math.max(0, Math.min(activeSession.timerDuration, activeSession.timerDuration - validElapsed));
+          setTimeRemaining(remaining);
+          return remaining;
+        };
 
-      // Update immediately
-      updateTimer();
+        updateTimer();
+        const timer = setInterval(() => {
+          const remaining = updateTimer();
+          if (remaining <= 0) {
+            clearInterval(timer);
+          }
+        }, 1000);
 
-      // Update every second to keep synchronized
-      const timer = setInterval(() => {
-        const remaining = updateTimer();
-        if (remaining <= 0) {
-          clearInterval(timer);
-        }
-      }, 1000);
-
-      return () => clearInterval(timer);
+        return () => clearInterval(timer);
+      }
+    } else {
+      setTimeRemaining(0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSession]);
 
   useEffect(() => {
@@ -164,19 +185,10 @@ export default function Attendance() {
         const wasInactive = !activeSession;
         const isNewSession = wasInactive || (activeSession && activeSession.id !== active.id);
         setActiveSession(active);
-        // Calculate remaining time - handle both Firestore Timestamp and ISO string
-        let startedAt;
-        if (active.startedAt?.toDate) {
-          startedAt = active.startedAt.toDate();
-        } else if (typeof active.startedAt === 'string') {
-          startedAt = new Date(active.startedAt);
-        } else if (active.startedAt?.seconds) {
-          startedAt = new Date(active.startedAt.seconds * 1000);
-        } else {
-          startedAt = new Date();
+        // Use server-provided timeRemaining if available (calculated on server for accuracy)
+        if (active.timeRemaining !== undefined) {
+          setTimeRemaining(active.timeRemaining);
         }
-        // Timer will be recalculated by the useEffect based on startedAt
-        // No need to set it here as it will be synchronized automatically
         
         // Check if user has already submitted (for students)
         if (!isAdmin && active.hasSubmitted !== undefined) {

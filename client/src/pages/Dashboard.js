@@ -2,6 +2,7 @@ import React from 'react';
 import { Container, Typography, Box, Paper, Grid, Card, CardContent, Chip } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import PeopleIcon from '@mui/icons-material/People';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -109,8 +110,60 @@ export default function Dashboard() {
           </Card>
         </Grid>
 
+        <Grid item xs={12} md={isAdmin ? 4 : 6}>
+          <Card
+            sx={{
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              color: 'white',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)',
+                opacity: 0,
+                transition: 'opacity 0.3s ease',
+              },
+              '&:hover::before': {
+                opacity: 1,
+              },
+            }}
+            onClick={() => navigate('/timetable')}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                <Box display="flex" alignItems="center">
+                  <Box
+                    sx={{
+                      background: 'rgba(255,255,255,0.2)',
+                      borderRadius: 2,
+                      p: 1.5,
+                      mr: 2,
+                    }}
+                  >
+                    <CalendarTodayIcon sx={{ fontSize: 32 }} />
+                  </Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    Timetable
+                  </Typography>
+                </Box>
+                <ArrowForwardIcon sx={{ opacity: 0.7 }} />
+              </Box>
+              <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+                Create and manage your class timetable. Add courses with schedules and automatically
+                detect time conflicts.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
         {isAdmin && (
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -189,6 +242,19 @@ export default function Dashboard() {
             />
             <Typography variant="body1" color="text.secondary">
               Navigate to <strong style={{ color: '#6366f1' }}>Snippets</strong> to manage your code snippets
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              }}
+            />
+            <Typography variant="body1" color="text.secondary">
+              Navigate to <strong style={{ color: '#4facfe' }}>Timetable</strong> to manage your class schedule
             </Typography>
           </Box>
           {isAdmin && (

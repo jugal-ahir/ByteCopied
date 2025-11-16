@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Snippets from './pages/Snippets';
 import Attendance from './pages/Attendance';
+import Timetable from './pages/Timetable';
 import Navbar from './components/Navbar';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -179,6 +180,15 @@ function AppContent() {
               <PrivateRoute>
                 <Navbar />
                 <Attendance />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/timetable"
+            element={
+              <PrivateRoute>
+                <Navbar />
+                <Timetable />
               </PrivateRoute>
             }
           />
