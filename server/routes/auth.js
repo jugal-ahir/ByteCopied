@@ -163,5 +163,39 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all users (Admin only)
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const { role } = req.user;
+
+    if (role !== 'admin') {
+      return res.status(403).json({
+        error: 'Admin access required. Only administrators can view all users.',
+      });
+    }
+
+    const users = await User.find()
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    const formattedUsers = users.map((user) => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      enrollmentNumber: user.enrollmentNumber,
+      role: user.role,
+      createdAt: user.createdAt,
+    }));
+
+    res.json({
+      users: formattedUsers,
+      total: formattedUsers.length,
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
 module.exports = router;
 

@@ -1,17 +1,87 @@
-import React from 'react';
-import { Container, Typography, Box, Paper, Grid, Card, CardContent, Chip, useTheme } from '@mui/material';
+import React, { useState } from 'react';
+import {
+  Container,
+  Typography,
+  Box,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  Chip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  Alert,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import PeopleIcon from '@mui/icons-material/People';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+
+// Ensure API URL always ends with /api
+const getApiUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  // If URL doesn't end with /api, append it
+  if (envUrl && !envUrl.endsWith('/api')) {
+    return envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
+  }
+  return envUrl;
+};
 
 export default function Dashboard() {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { currentUser, isAdmin } = useAuth();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { currentUser, isAdmin, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
+  const [usersDialogOpen, setUsersDialogOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState(null);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    setUsersError(null);
+    try {
+      const API_URL = getApiUrl();
+      const response = await axios.get(`${API_URL}/auth/users`, {
+        headers: getAuthHeaders(),
+      });
+      setUsers(response.data.users || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsersError(error.response?.data?.error || 'Failed to fetch users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleOpenUsersDialog = () => {
+    setUsersDialogOpen(true);
+    if (users.length === 0) {
+      fetchUsers();
+    }
+  };
+
+  const handleCloseUsersDialog = () => {
+    setUsersDialogOpen(false);
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
@@ -52,16 +122,35 @@ export default function Dashboard() {
             {currentUser.enrollmentNumber}
           </Typography>
         )}
-        <Chip
-          label={isAdmin ? '👑 Administrator' : '🎓 Student'}
-          color={isAdmin ? 'secondary' : 'primary'}
-          sx={{
-            fontWeight: 600,
-            px: 1,
-            py: 2.5,
-            fontSize: '0.95rem',
-          }}
-        />
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', mt: 2 }}>
+          <Chip
+            label={isAdmin ? '👑 Administrator' : '🎓 Student'}
+            color={isAdmin ? 'secondary' : 'primary'}
+            sx={{
+              fontWeight: 600,
+              px: 1,
+              py: 2.5,
+              fontSize: '0.95rem',
+            }}
+          />
+          {isAdmin && (
+            <Button
+              variant="contained"
+              startIcon={<PersonSearchIcon />}
+              onClick={handleOpenUsersDialog}
+              sx={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                px: { xs: 2, sm: 3 },
+              }}
+            >
+              View All Users
+            </Button>
+          )}
+        </Box>
       </Box>
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
@@ -285,6 +374,159 @@ export default function Dashboard() {
           )}
         </Box>
       </Paper>
+
+      {/* View All Users Dialog */}
+      <Dialog
+        open={usersDialogOpen}
+        onClose={handleCloseUsersDialog}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: isMobile ? 0 : 3,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 2,
+            borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            All Registered Users
+          </Typography>
+          <Button
+            onClick={handleCloseUsersDialog}
+            sx={{ minWidth: 'auto', p: 1 }}
+            color="inherit"
+          >
+            <CloseIcon />
+          </Button>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          {loadingUsers ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : usersError ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {usersError}
+            </Alert>
+          ) : users.length === 0 ? (
+            <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+              No users found.
+            </Typography>
+          ) : (
+            <TableContainer
+              sx={{
+                maxHeight: '60vh',
+                '&::-webkit-scrollbar': {
+                  width: '10px',
+                  height: '10px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                  borderRadius: '10px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  borderRadius: '10px',
+                  border: `2px solid ${isDark ? '#1e1e1e' : '#ffffff'}`,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                  },
+                },
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#6366f1 rgba(255, 255, 255, 0.05)',
+              }}
+            >
+              <Table stickyHeader size={isMobile ? 'small' : 'medium'}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255,255,255,0.8)' }}>
+                      Name
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255,255,255,0.8)' }}>
+                      Email
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255,255,255,0.8)' }}>
+                      Enrollment
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255,255,255,0.8)' }}>
+                      Role
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255,255,255,0.8)',
+                        display: { xs: 'none', sm: 'table-cell' },
+                      }}
+                    >
+                      Registered
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow
+                      key={user.id}
+                      sx={{
+                        '&:hover': {
+                          bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                        },
+                      }}
+                    >
+                      <TableCell>{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.enrollmentNumber}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.role === 'admin' ? '👑 Admin' : '🎓 Student'}
+                          color={user.role === 'admin' ? 'secondary' : 'primary'}
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          display: { xs: 'none', sm: 'table-cell' },
+                        }}
+                      >
+                        {user.createdAt
+                          ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+          {users.length > 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+              Total Users: <strong>{users.length}</strong>
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, borderTop: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>
+          <Button onClick={handleCloseUsersDialog} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
