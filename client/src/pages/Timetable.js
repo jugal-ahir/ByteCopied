@@ -26,6 +26,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -44,6 +46,8 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
 
 export default function Timetable() {
   const { getAuthHeaders } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [courses, setCourses] = useState([]);
   const [conflicts, setConflicts] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -319,22 +323,25 @@ export default function Timetable() {
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              fontSize: { xs: '1.5rem', sm: '2rem' },
             }}
           >
             📅 Timetable Manager
           </Typography>
-          <Box display="flex" gap={1} flexWrap="wrap">
+          <Box display="flex" gap={1} flexWrap="wrap" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
             {courses.length > 0 && (
               <>
                 <Button
                   variant="outlined"
                   startIcon={<DownloadIcon />}
                   onClick={handleDownloadPDF}
+                  size="small"
                   sx={{
                     borderRadius: 2,
                     fontWeight: 600,
                     borderColor: '#ef4444',
                     color: '#ef4444',
+                    flex: { xs: 1, sm: 'none' },
                     '&:hover': {
                       borderColor: '#dc2626',
                       background: 'rgba(239, 68, 68, 0.05)',
@@ -347,11 +354,13 @@ export default function Timetable() {
                   variant="outlined"
                   startIcon={<DownloadIcon />}
                   onClick={handleDownloadCSV}
+                  size="small"
                   sx={{
                     borderRadius: 2,
                     fontWeight: 600,
                     borderColor: '#3b82f6',
                     color: '#3b82f6',
+                    flex: { xs: 1, sm: 'none' },
                     '&:hover': {
                       borderColor: '#2563eb',
                       background: 'rgba(59, 130, 246, 0.05)',
@@ -366,9 +375,12 @@ export default function Timetable() {
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => handleOpenDialog()}
+              fullWidth={{ xs: true, sm: false }}
+              size="medium"
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,
+                mt: { xs: 1, sm: 0 },
               }}
             >
               Add Course
@@ -410,14 +422,34 @@ export default function Timetable() {
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
           Weekly Timetable
         </Typography>
-        <TableContainer>
-          <Table size="small">
+        <TableContainer sx={{ 
+          maxWidth: '100%',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': {
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(0,0,0,0.05)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#6366f1',
+            borderRadius: '4px',
+            '&:hover': {
+              background: '#4f46e5',
+            },
+          },
+        }}>
+          <Table size="small" sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, width: 100 }}>Time</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: { xs: 60, sm: 100 }, minWidth: 60, position: 'sticky', left: 0, zIndex: 10, bgcolor: 'background.paper' }}>
+                  Time
+                </TableCell>
                 {DAYS.map(day => (
-                  <TableCell key={day} sx={{ fontWeight: 600, textAlign: 'center' }}>
-                    {day.substring(0, 3)}
+                  <TableCell key={day} sx={{ fontWeight: 600, textAlign: 'center', minWidth: 80 }}>
+                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>{day}</Box>
+                    <Box sx={{ display: { xs: 'block', sm: 'none' } }}>{day.substring(0, 3)}</Box>
                   </TableCell>
                 ))}
               </TableRow>
@@ -425,7 +457,15 @@ export default function Timetable() {
             <TableBody>
               {TIME_SLOTS.map((time, hourIndex) => (
                 <TableRow key={time}>
-                  <TableCell sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                  <TableCell sx={{ 
+                    fontWeight: 500, 
+                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                    position: 'sticky',
+                    left: 0,
+                    zIndex: 9,
+                    bgcolor: 'background.paper',
+                    borderRight: '2px solid rgba(0,0,0,0.1)',
+                  }}>
                     {time}
                   </TableCell>
                   {DAYS.map(day => {
@@ -468,14 +508,22 @@ export default function Timetable() {
                                 border: hasConflict ? '2px solid #ef4444' : 'none',
                               }}
                             >
-                              <Box sx={{ fontWeight: 600 }}>{item.course.courseCode}</Box>
-                              <Box sx={{ fontSize: '0.65rem', opacity: 0.95, lineHeight: 1.2, mt: 0.25 }}>
+                              <Box sx={{ fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                                {item.course.courseCode}
+                              </Box>
+                              <Box sx={{ 
+                                fontSize: { xs: '0.55rem', sm: '0.65rem' }, 
+                                opacity: 0.95, 
+                                lineHeight: 1.2, 
+                                mt: 0.25,
+                                display: { xs: 'none', sm: 'block' }
+                              }}>
                                 {item.course.courseName}
                               </Box>
-                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9, mt: 0.25 }}>
+                              <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
                                 Sec {item.course.section}
                               </Box>
-                              <Box sx={{ fontSize: '0.65rem', opacity: 0.9, mt: 0.25 }}>
+                              <Box sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, opacity: 0.9, mt: 0.25 }}>
                                 {item.timing.startTime} - {item.timing.endTime}
                               </Box>
                             </Box>
@@ -609,10 +657,13 @@ export default function Timetable() {
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: { xs: 0, sm: 3 },
             boxShadow: '0px 8px 32px rgba(0,0,0,0.15)',
+            m: { xs: 0, sm: 2 },
+            maxHeight: { xs: '100%', sm: '90vh' },
           },
         }}
       >
@@ -622,7 +673,8 @@ export default function Timetable() {
             background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            fontSize: '1.5rem',
+            fontSize: { xs: '1.25rem', sm: '1.5rem' },
+            p: { xs: 2, sm: 3 },
           }}
         >
           {editingCourse ? '✏️ Edit Course' : '➕ Add Course'}
@@ -764,9 +816,10 @@ export default function Timetable() {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 2 }}>
+        <DialogActions sx={{ p: { xs: 2, sm: 3 }, pt: 2, flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: { xs: 1, sm: 0 } }}>
           <Button
             onClick={handleCloseDialog}
+            fullWidth={{ xs: true, sm: false }}
             sx={{
               borderRadius: 2,
               fontWeight: 600,
@@ -778,6 +831,7 @@ export default function Timetable() {
             onClick={handleSubmit}
             variant="contained"
             disabled={loading}
+            fullWidth={{ xs: true, sm: false }}
             sx={{
               borderRadius: 2,
               fontWeight: 600,

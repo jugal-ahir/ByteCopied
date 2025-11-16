@@ -13,6 +13,11 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  IconButton,
 } from '@mui/material';
 import {
   AccountCircle,
@@ -23,6 +28,7 @@ import {
   AdminPanelSettings,
   School,
   CalendarToday,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -31,6 +37,7 @@ export default function Navbar() {
   const location = useLocation();
   const { currentUser, logout, isAdmin } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -44,6 +51,11 @@ export default function Navbar() {
     await logout();
     navigate('/login');
     handleClose();
+    setMobileOpen(false);
+  };
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
   const getInitials = (name, email) => {
@@ -154,12 +166,28 @@ export default function Navbar() {
           </Typography>
         </Box>
 
+        {/* Mobile menu button */}
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ 
+            mr: 2, 
+            display: { md: 'none' },
+            color: 'white',
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+
+        {/* Desktop navigation buttons */}
         <Box sx={{ 
-          display: 'flex', 
+          display: { xs: 'none', md: 'flex' }, 
           gap: 1, 
           alignItems: 'center',
           flexGrow: 1,
-          justifyContent: { xs: 'flex-end', md: 'flex-start' },
+          justifyContent: 'flex-start',
         }}>
           <Button
             onClick={() => navigate('/')}
@@ -427,6 +455,167 @@ export default function Navbar() {
           </MenuItem>
         </Menu>
       </Toolbar>
+
+      {/* Mobile drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 280,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+            backdropFilter: 'blur(20px)',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', color: 'white' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Avatar
+              sx={{
+                width: 48,
+                height: 48,
+                background: 'rgba(255,255,255,0.2)',
+                fontSize: '1.25rem',
+                fontWeight: 700,
+              }}
+            >
+              {getInitials(currentUser?.name, currentUser?.email)}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {currentUser?.name || currentUser?.email || 'User'}
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                {isAdmin ? 'Administrator' : 'Student'}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        <List sx={{ pt: 2 }}>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={location.pathname === '/'}
+              onClick={() => {
+                navigate('/');
+                setMobileOpen(false);
+              }}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  borderLeft: '4px solid #6366f1',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <DashboardIcon sx={{ color: location.pathname === '/' ? '#6366f1' : '#64748b' }} />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={location.pathname === '/snippets'}
+              onClick={() => {
+                navigate('/snippets');
+                setMobileOpen(false);
+              }}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  borderLeft: '4px solid #6366f1',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Code sx={{ color: location.pathname === '/snippets' ? '#6366f1' : '#64748b' }} />
+              </ListItemIcon>
+              <ListItemText primary="Snippets" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={location.pathname === '/attendance'}
+              onClick={() => {
+                navigate('/attendance');
+                setMobileOpen(false);
+              }}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
+                  borderLeft: '4px solid #ec4899',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <People sx={{ color: location.pathname === '/attendance' ? '#ec4899' : '#64748b' }} />
+              </ListItemIcon>
+              <ListItemText primary="Attendance" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={location.pathname === '/timetable'}
+              onClick={() => {
+                navigate('/timetable');
+                setMobileOpen(false);
+              }}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&.Mui-selected': {
+                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                  borderLeft: '4px solid #6366f1',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <CalendarToday sx={{ color: location.pathname === '/timetable' ? '#6366f1' : '#64748b' }} />
+              </ListItemIcon>
+              <ListItemText primary="Timetable" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        <Divider sx={{ my: 1 }} />
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={handleLogout}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <Logout sx={{ color: '#ef4444' }} />
+              </ListItemIcon>
+              <ListItemText primary="Logout" primaryTypographyProps={{ sx: { color: '#ef4444', fontWeight: 600 } }} />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Drawer>
     </AppBar>
   );
 }

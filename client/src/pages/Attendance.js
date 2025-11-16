@@ -8,8 +8,6 @@ import {
   TextField,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
   LinearProgress,
   Alert,
   CircularProgress,
@@ -341,7 +339,7 @@ export default function Attendance() {
             background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 3,
-            p: 3,
+            p: { xs: 2, sm: 3 },
             mb: 4,
             boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
           }}
@@ -354,6 +352,7 @@ export default function Attendance() {
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              fontSize: { xs: '1.5rem', sm: '2rem' },
             }}
           >
             📋 Attendance
@@ -363,7 +362,7 @@ export default function Attendance() {
         {activeSession ? (
           <Paper
             sx={{
-              p: 5,
+              p: { xs: 3, sm: 5 },
               mt: 3,
               background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
               backdropFilter: 'blur(20px)',

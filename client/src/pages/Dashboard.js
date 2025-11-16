@@ -18,7 +18,7 @@ export default function Dashboard() {
           background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 4,
-          p: 4,
+          p: { xs: 2, sm: 4 },
           mb: 4,
           boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
         }}
@@ -33,11 +33,12 @@ export default function Dashboard() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             mb: 1,
+            fontSize: { xs: '1.75rem', sm: '2.5rem' },
           }}
         >
           Welcome back! 👋
         </Typography>
-        <Typography variant="h5" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+        <Typography variant="h5" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 500, fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
           {currentUser?.name || currentUser?.email}
         </Typography>
         {currentUser?.enrollmentNumber && (

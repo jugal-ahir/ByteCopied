@@ -96,7 +96,7 @@ export default function Login() {
         <Paper
           elevation={0}
           sx={{
-            padding: 5,
+            padding: { xs: 3, sm: 5 },
             width: '100%',
             background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
@@ -115,11 +115,12 @@ export default function Login() {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 mb: 1,
+                fontSize: { xs: '1.75rem', sm: '2.5rem' },
               }}
             >
               💻 ByteCopied
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
               Code Snippet Management & Attendance System
             </Typography>
           </Box>
