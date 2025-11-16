@@ -11,6 +11,7 @@ import Snippets from './pages/Snippets';
 import Attendance from './pages/Attendance';
 import Timetable from './pages/Timetable';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 
 const theme = createTheme({
@@ -147,53 +148,56 @@ function AppContent() {
   }
 
   return (
-    <Box sx={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
+    <Box sx={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Router
         future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true,
         }}
       >
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Navbar />
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/snippets"
-            element={
-              <PrivateRoute>
-                <Navbar />
-                <Snippets />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/attendance"
-            element={
-              <PrivateRoute>
-                <Navbar />
-                <Attendance />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/timetable"
-            element={
-              <PrivateRoute>
-                <Navbar />
-                <Timetable />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Box sx={{ flex: 1 }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Navbar />
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/snippets"
+              element={
+                <PrivateRoute>
+                  <Navbar />
+                  <Snippets />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/attendance"
+              element={
+                <PrivateRoute>
+                  <Navbar />
+                  <Attendance />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/timetable"
+              element={
+                <PrivateRoute>
+                  <Navbar />
+                  <Timetable />
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Box>
+        <Footer />
       </Router>
     </Box>
   );
