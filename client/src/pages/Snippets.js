@@ -72,6 +72,7 @@ const getMonacoLanguage = (lang) => {
 export default function Snippets() {
   const { getAuthHeaders, isAdmin } = useAuth();
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [snippets, setSnippets] = useState([]);
   const [selectedSnippets, setSelectedSnippets] = useState([]);
@@ -245,12 +246,16 @@ export default function Snippets() {
     <Container maxWidth="xl" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
       <Box
         sx={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
           p: { xs: 2, sm: 3 },
           mb: 4,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={3}>
@@ -346,7 +351,9 @@ export default function Snippets() {
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
-              background: 'rgba(255,255,255,0.8)',
+              background: isDark
+                ? 'rgba(30, 41, 59, 0.8)'
+                : 'rgba(255,255,255,0.8)',
               '&:hover fieldset': {
                 borderColor: '#6366f1',
               },
@@ -369,7 +376,9 @@ export default function Snippets() {
             <Grid item xs={12} sm={6} lg={4} key={item}>
               <Card
                 sx={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                  background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
                   backdropFilter: 'blur(20px)',
                   borderRadius: 3,
                   boxShadow: '0px 4px 20px rgba(0,0,0,0.08)',
@@ -402,7 +411,9 @@ export default function Snippets() {
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                    background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: 3,
                     boxShadow: '0px 4px 20px rgba(0,0,0,0.08)',
@@ -509,12 +520,9 @@ export default function Snippets() {
                         mb={2}
                         sx={{
                           fontStyle: 'italic',
-                          minHeight: 40,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word',
+                          whiteSpace: 'pre-wrap',
                         }}
                       >
                         {snippet.description}
@@ -595,10 +603,14 @@ export default function Snippets() {
             sx={{
               p: 6,
               textAlign: 'center',
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
               backdropFilter: 'blur(20px)',
               borderRadius: 3,
-              boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+              boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
             }}
           >
             <Typography variant="h5" color="text.secondary" gutterBottom>
@@ -628,10 +640,14 @@ export default function Snippets() {
             sx={{
               p: 6,
               textAlign: 'center',
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
               backdropFilter: 'blur(20px)',
               borderRadius: 3,
-              boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+              boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
             }}
           >
             <Typography variant="h5" color="text.secondary" gutterBottom>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Paper, Grid, Card, CardContent, Chip } from '@mui/material';
+import { Container, Typography, Box, Paper, Grid, Card, CardContent, Chip, useTheme } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import PeopleIcon from '@mui/icons-material/People';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { currentUser, isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -15,12 +17,16 @@ export default function Dashboard() {
     <Container maxWidth="lg" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
       <Box
         sx={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 4,
           p: { xs: 2, sm: 4 },
           mb: 4,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Typography 
@@ -222,10 +228,14 @@ export default function Dashboard() {
         sx={{
           p: 4,
           mt: 4,
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>

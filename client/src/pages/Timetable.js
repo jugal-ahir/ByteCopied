@@ -27,7 +27,7 @@ import {
   TableHead,
   TableRow,
   useMediaQuery,
-  useTheme,
+  useTheme as useMUITheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -46,7 +46,8 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
 
 export default function Timetable() {
   const { getAuthHeaders } = useAuth();
-  const theme = useTheme();
+  const theme = useMUITheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [courses, setCourses] = useState([]);
   const [conflicts, setConflicts] = useState([]);
@@ -318,12 +319,16 @@ export default function Timetable() {
     <Container maxWidth="xl" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
       <Box
         sx={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
           p: 3,
           mb: 4,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
@@ -425,10 +430,14 @@ export default function Timetable() {
         sx={{
           p: 3,
           mb: 4,
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
@@ -441,7 +450,9 @@ export default function Timetable() {
             height: '8px',
           },
           '&::-webkit-scrollbar-track': {
-            background: 'rgba(0,0,0,0.05)',
+            background: isDark
+              ? 'rgba(255,255,255,0.05)'
+              : 'rgba(0,0,0,0.05)',
             borderRadius: '4px',
           },
           '&::-webkit-scrollbar-thumb': {
@@ -492,7 +503,9 @@ export default function Timetable() {
                       left: 0,
                       zIndex: 9,
                       bgcolor: 'background.paper',
-                      borderRight: '2px solid rgba(0,0,0,0.1)',
+                      borderRight: isDark
+                        ? '2px solid rgba(255,255,255,0.1)'
+                        : '2px solid rgba(0,0,0,0.1)',
                     }}>
                       {time}
                     </TableCell>
@@ -524,7 +537,9 @@ export default function Timetable() {
                           sx={{
                             p: 0.5,
                             verticalAlign: 'middle',
-                            border: '1px solid rgba(0,0,0,0.1)',
+                            border: isDark
+                              ? '1px solid rgba(255,255,255,0.1)'
+                              : '1px solid rgba(0,0,0,0.1)',
                             minHeight: 60,
                             position: 'relative',
                           }}
@@ -597,7 +612,7 @@ export default function Timetable() {
             <Grid item xs={12} sm={6} md={4} key={course._id}>
               <Card
                 sx={{
-                  border: hasConflict ? '2px solid #ef4444' : '1px solid rgba(0,0,0,0.1)',
+                  border: hasConflict ? '2px solid #ef4444' : isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                   borderRadius: 2,
                   transition: 'all 0.3s ease',
                   '&:hover': {
@@ -673,10 +688,14 @@ export default function Timetable() {
           sx={{
             p: 6,
             textAlign: 'center',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 3,
-            boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+            boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
           }}
         >
           <Typography variant="h5" color="text.secondary" gutterBottom>
@@ -805,9 +824,13 @@ export default function Timetable() {
                   sx={{
                     p: 2,
                     mb: 2,
-                    border: '1px solid rgba(0,0,0,0.1)',
+                    border: isDark
+                      ? '1px solid rgba(255,255,255,0.1)'
+                      : '1px solid rgba(0,0,0,0.1)',
                     borderRadius: 2,
-                    bgcolor: 'rgba(0,0,0,0.02)',
+                    bgcolor: isDark
+                      ? 'rgba(255,255,255,0.02)'
+                      : 'rgba(0,0,0,0.02)',
                   }}
                 >
                   <Grid container spacing={2} alignItems="center">

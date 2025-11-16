@@ -29,13 +29,17 @@ import {
   School,
   CalendarToday,
   Menu as MenuIcon,
+  LightMode,
+  DarkMode,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import { useThemeMode } from '../contexts/ThemeContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, logout, isAdmin } = useAuth();
+  const { mode, toggleMode } = useThemeMode();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -220,6 +224,25 @@ export default function Navbar() {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 2 }}>
+          {/* Dark Mode Toggle */}
+          <IconButton
+            onClick={toggleMode}
+            sx={{
+              color: 'white',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              '&:hover': {
+                background: 'rgba(255,255,255,0.2)',
+                transform: 'scale(1.1)',
+              },
+              transition: 'all 0.3s ease',
+            }}
+            aria-label="toggle theme"
+          >
+            {mode === 'dark' ? <LightMode /> : <DarkMode />}
+          </IconButton>
+
           {isAdmin && (
             <Chip
               icon={<AdminPanelSettings sx={{ fontSize: 16 }} />}
@@ -597,6 +620,26 @@ export default function Navbar() {
         </List>
         <Divider sx={{ my: 1 }} />
         <List>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={toggleMode}
+              sx={{
+                py: 1.5,
+                px: 3,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)',
+                },
+              }}
+            >
+              <ListItemIcon>
+                {mode === 'dark' ? <LightMode sx={{ color: '#f59e0b' }} /> : <DarkMode sx={{ color: '#6366f1' }} />}
+              </ListItemIcon>
+              <ListItemText 
+                primary={mode === 'dark' ? 'Light Mode' : 'Dark Mode'} 
+                primaryTypographyProps={{ sx: { fontWeight: 600 } }} 
+              />
+            </ListItemButton>
+          </ListItem>
           <ListItem disablePadding>
             <ListItemButton
               onClick={handleLogout}

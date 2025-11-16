@@ -11,6 +11,7 @@ import {
   LinearProgress,
   Alert,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -20,6 +21,8 @@ import createApiInstance from '../services/api';
 import { saveAs } from 'file-saver';
 
 export default function Attendance() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { getAuthHeaders, isAdmin, currentUser } = useAuth();
   const [section, setSection] = useState('1');
   const [timerDuration, setTimerDuration] = useState(60);
@@ -336,12 +339,16 @@ export default function Attendance() {
       <Container maxWidth="md" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
         <Box
           sx={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 3,
             p: { xs: 2, sm: 3 },
             mb: 4,
-            boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+            boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
           }}
         >
           <Typography
@@ -364,10 +371,14 @@ export default function Attendance() {
             sx={{
               p: { xs: 3, sm: 5 },
               mt: 3,
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
               backdropFilter: 'blur(20px)',
               borderRadius: 3,
-              boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+              boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
               border: '2px solid #6366f1',
               animation: 'pulse 2s ease-in-out infinite',
               '@keyframes pulse': {
@@ -601,10 +612,14 @@ export default function Attendance() {
               p: 6,
               mt: 3,
               textAlign: 'center',
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+              background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
               backdropFilter: 'blur(20px)',
               borderRadius: 3,
-              boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+              boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
             }}
           >
             <Box
@@ -644,12 +659,16 @@ export default function Attendance() {
     <Container maxWidth="lg" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
       <Box
         sx={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px)',
           borderRadius: 3,
           p: 3,
           mb: 4,
-          boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+          boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
         }}
       >
         <Typography
@@ -683,10 +702,14 @@ export default function Attendance() {
           sx={{
             p: 5,
             mt: 3,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 3,
-            boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+            boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
           }}
         >
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
@@ -758,10 +781,14 @@ export default function Attendance() {
           sx={{
             p: 5,
             mt: 3,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background: isDark
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 3,
-            boxShadow: '0px 8px 32px rgba(0,0,0,0.1)',
+            boxShadow: isDark
+            ? '0px 8px 32px rgba(0,0,0,0.5)'
+            : '0px 8px 32px rgba(0,0,0,0.1)',
           }}
         >
           <Box textAlign="center" mb={4}>

@@ -11,10 +11,13 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [tabValue, setTabValue] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -98,10 +101,14 @@ export default function Login() {
           sx={{
             padding: { xs: 3, sm: 5 },
             width: '100%',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
             borderRadius: 4,
-            boxShadow: '0px 8px 32px rgba(0,0,0,0.15)',
+            boxShadow: isDark
+              ? '0px 8px 32px rgba(0,0,0,0.5)'
+              : '0px 8px 32px rgba(0,0,0,0.15)',
           }}
         >
           <Box sx={{ textAlign: 'center', mb: 3 }}>
