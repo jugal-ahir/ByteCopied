@@ -39,9 +39,11 @@ import createApiInstance from '../services/api';
 import { saveAs } from 'file-saver';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
-  const hour = i.toString().padStart(2, '0');
-  return `${hour}:00`;
+// Create 30-minute interval time slots (48 slots for 24 hours)
+const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
+  const minute = (i % 2) * 30;
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 });
 
 export default function Timetable() {
@@ -257,47 +259,86 @@ export default function Timetable() {
     }
   };
 
-  // Generate timetable grid with merged cell support
+  // Generate timetable grid with merged cell support using 30-minute intervals
   const generateTimetableGrid = () => {
     const grid = {};
     const cellSpans = {}; // Track rowSpan for each cell
     
     DAYS.forEach(day => {
-      grid[day] = Array(24).fill(null).map(() => []);
-      cellSpans[day] = Array(24).fill(null).map(() => ({}));
+      grid[day] = Array(48).fill(null).map(() => []); // 48 slots for 30-minute intervals
+      cellSpans[day] = Array(48).fill(null).map(() => ({}));
     });
 
     courses.forEach(course => {
       course.timings.forEach(timing => {
+        // Validate that the timing has a valid day
+        if (!timing.day || !DAYS.includes(timing.day)) {
+          console.warn(`Invalid day "${timing.day}" for course ${course.courseCode}`);
+          return;
+        }
+
         const startHour = parseInt(timing.startTime.split(':')[0]);
         const endHour = parseInt(timing.endTime.split(':')[0]);
-        const startMin = parseInt(timing.startTime.split(':')[1]);
-        const endMin = parseInt(timing.endTime.split(':')[1]);
+        const startMin = parseInt(timing.startTime.split(':')[1]) || 0;
+        const endMin = parseInt(timing.endTime.split(':')[1]) || 0;
 
-        // Calculate duration in hours (can be fractional)
+        // Validate time values
+        if (isNaN(startHour) || isNaN(endHour) || startHour < 0 || startHour >= 24 || endHour < 0 || endHour >= 24) {
+          console.warn(`Invalid time for course ${course.courseCode} on ${timing.day}`);
+          return;
+        }
+
+        // Calculate total minutes from midnight
         const startTimeMinutes = startHour * 60 + startMin;
         const endTimeMinutes = endHour * 60 + endMin;
-        const durationHours = (endTimeMinutes - startTimeMinutes) / 60;
 
-        // Calculate which hour slot this course starts at
-        if (startHour >= 0 && startHour < 24) {
-          const courseData = {
-            course,
-            timing,
-            durationHours,
-            startHour,
-            endHour,
-            startMin,
-            endMin,
-          };
+        // Validate duration
+        if (endTimeMinutes <= startTimeMinutes) {
+          console.warn(`Invalid duration for course ${course.courseCode} on ${timing.day}`);
+          return;
+        }
 
-          // Only add to the starting hour slot
-          if (grid[timing.day] && grid[timing.day][startHour]) {
-            grid[timing.day][startHour].push(courseData);
+        // Calculate which 30-minute slot this course starts at
+        // Each hour has 2 slots (0 and 30 minutes)
+        const startSlotIndex = Math.floor(startTimeMinutes / 30);
+        const endSlotIndex = Math.ceil(endTimeMinutes / 30);
+        const slotSpan = endSlotIndex - startSlotIndex;
+
+        // Validate slot index
+        if (startSlotIndex < 0 || startSlotIndex >= 48 || slotSpan <= 0) {
+          console.warn(`Invalid slot calculation for course ${course.courseCode} on ${timing.day}`);
+          return;
+        }
+
+        const courseData = {
+          course,
+          timing,
+          startTimeMinutes,
+          endTimeMinutes,
+          startHour,
+          endHour,
+          startMin,
+          endMin,
+          startSlotIndex,
+          endSlotIndex,
+        };
+
+        // Only add to the starting slot for the SPECIFIC day
+        if (grid[timing.day] && grid[timing.day][startSlotIndex]) {
+          // Verify this course isn't already added for this specific day and slot
+          const alreadyAdded = grid[timing.day][startSlotIndex].some(
+            item => item.course._id === course._id && 
+                    item.timing.day === timing.day &&
+                    item.timing.startTime === timing.startTime &&
+                    item.timing.endTime === timing.endTime
+          );
+          
+          if (!alreadyAdded) {
+            grid[timing.day][startSlotIndex].push(courseData);
             
-            // Calculate rowSpan (number of hours to span, minimum 1)
-            const rowSpan = Math.max(1, Math.ceil(durationHours));
-            cellSpans[timing.day][startHour][course._id] = rowSpan;
+            // Calculate rowSpan (number of 30-minute slots to span)
+            const spanKey = `${course._id}_${timing.day}_${timing.startTime}_${timing.endTime}`;
+            cellSpans[timing.day][startSlotIndex][spanKey] = Math.max(1, slotSpan);
           }
         }
       });
@@ -478,15 +519,35 @@ export default function Timetable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {TIME_SLOTS.map((time, hourIndex) => {
+              {TIME_SLOTS.map((time, slotIndex) => {
                 // Helper function to check if a cell should be skipped
                 const shouldSkipCell = (day) => {
-                  for (let prevHour = 0; prevHour < hourIndex; prevHour++) {
-                    const prevCourses = timetableGrid[day]?.[prevHour] || [];
+                  // First, check if there are any courses that START at this slot for THIS specific day
+                  const coursesStartingHere = timetableGrid[day]?.[slotIndex] || [];
+                  if (coursesStartingHere.length > 0) {
+                    // Verify that these courses actually belong to this day
+                    const validCourses = coursesStartingHere.filter(
+                      item => item.timing.day === day
+                    );
+                    if (validCourses.length > 0) {
+                      // If there are valid courses starting here, don't skip
+                      return false;
+                    }
+                  }
+                  
+                  // If no courses start here, check if a previous course spans into this slot
+                  // Only check courses that belong to THIS specific day
+                  for (let prevSlot = 0; prevSlot < slotIndex; prevSlot++) {
+                    const prevCourses = timetableGrid[day]?.[prevSlot] || [];
                     for (const prevItem of prevCourses) {
-                      const prevRowSpan = cellSpans[day]?.[prevHour]?.[prevItem.course._id] || 1;
-                      // If a course from a previous hour spans into this hour, skip this cell
-                      if (prevHour + prevRowSpan > hourIndex) {
+                      // Verify this course belongs to this day
+                      if (prevItem.timing.day !== day) {
+                        continue;
+                      }
+                      const spanKey = `${prevItem.course._id}_${day}_${prevItem.timing.startTime}_${prevItem.timing.endTime}`;
+                      const prevRowSpan = cellSpans[day]?.[prevSlot]?.[spanKey] || 1;
+                      // If a course from a previous slot spans into this slot, skip this cell
+                      if (prevSlot + prevRowSpan > slotIndex) {
                         return true;
                       }
                     }
@@ -515,20 +576,30 @@ export default function Timetable() {
                         return null;
                       }
 
-                      const coursesInSlot = timetableGrid[day]?.[hourIndex] || [];
+                      // Get courses for this specific day and slot, and filter to ensure they belong to this day
+                      const coursesInSlot = (timetableGrid[day]?.[slotIndex] || []).filter(
+                        item => item.timing.day === day
+                      );
+                      
                       const uniqueCourses = [];
                       const seen = new Set();
                       
                       coursesInSlot.forEach(item => {
-                        if (!seen.has(item.course._id)) {
-                          seen.add(item.course._id);
+                        // Use a unique key that includes course ID, day, and timing to handle same course on different days/times
+                        const uniqueKey = `${item.course._id}_${day}_${item.timing.startTime}_${item.timing.endTime}`;
+                        if (!seen.has(uniqueKey)) {
+                          seen.add(uniqueKey);
                           uniqueCourses.push(item);
                         }
                       });
 
                       // Get the rowSpan for the first course (if multiple courses, use the max)
+                      // Use the new spanKey format that includes the day and timing
                       const rowSpan = uniqueCourses.length > 0 ? 
-                        Math.max(...uniqueCourses.map(item => cellSpans[day]?.[hourIndex]?.[item.course._id] || 1)) : 
+                        Math.max(...uniqueCourses.map(item => {
+                          const spanKey = `${item.course._id}_${day}_${item.timing.startTime}_${item.timing.endTime}`;
+                          return cellSpans[day]?.[slotIndex]?.[spanKey] || 1;
+                        })) : 
                         1;
 
                       return (
@@ -540,7 +611,7 @@ export default function Timetable() {
                             border: isDark
                               ? '1px solid rgba(255,255,255,0.1)'
                               : '1px solid rgba(0,0,0,0.1)',
-                            minHeight: 60,
+                            minHeight: 30,
                             position: 'relative',
                           }}
                           rowSpan={uniqueCourses.length > 0 ? rowSpan : 1}
@@ -548,7 +619,14 @@ export default function Timetable() {
                           {uniqueCourses.map((item, idx) => {
                             const courseConflicts = getCourseConflicts(item.course._id);
                             const hasConflict = courseConflicts.length > 0;
-                            const itemRowSpan = cellSpans[day]?.[hourIndex]?.[item.course._id] || 1;
+                            // Use the new spanKey format that includes the day and timing
+                            const spanKey = `${item.course._id}_${day}_${item.timing.startTime}_${item.timing.endTime}`;
+                            const itemRowSpan = cellSpans[day]?.[slotIndex]?.[spanKey] || 1;
+                            
+                            // Double-check that this course actually belongs to this day
+                            if (item.timing.day !== day) {
+                              return null;
+                            }
                             
                             return (
                               <Box
@@ -562,7 +640,7 @@ export default function Timetable() {
                                   fontWeight: 500,
                                   border: hasConflict ? '2px solid #ef4444' : 'none',
                                   height: itemRowSpan > 1 ? `calc(100% - 4px)` : 'auto',
-                                  minHeight: itemRowSpan > 1 ? `${itemRowSpan * 60 - 8}px` : 'auto',
+                                  minHeight: itemRowSpan > 1 ? `${itemRowSpan * 30 - 8}px` : 'auto',
                                   display: 'flex',
                                   flexDirection: 'column',
                                   justifyContent: 'center',
