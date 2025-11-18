@@ -258,7 +258,7 @@ This project is licensed under the ISC License.
 **Jugal**
 
 - GitHub: [@jugal-ahir](https://github.com/jugal-ahir)
-- Email: [Your Email]
+- Email: vaghmashijugal@gmail.com
 
 ## 🙏 Acknowledgments
 
