@@ -53,19 +53,22 @@ export default function Attendance() {
         const serverTimeRemaining = activeSession.timeRemaining;
         
         // Countdown locally, refreshing from server periodically
+        // Use more frequent updates (every 500ms) for smoother countdown
         const timer = setInterval(() => {
           const now = new Date();
-          const elapsedSinceUpdate = Math.floor((now.getTime() - receivedAt.getTime()) / 1000);
+          // Calculate elapsed time more accurately using milliseconds
+          const elapsedSinceUpdate = (now.getTime() - receivedAt.getTime()) / 1000;
           const newRemaining = Math.max(0, serverTimeRemaining - elapsedSinceUpdate);
-          setTimeRemaining(newRemaining);
+          setTimeRemaining(Math.floor(newRemaining)); // Round down to whole seconds for display
           
           if (newRemaining <= 0) {
             clearInterval(timer);
+            setTimeRemaining(0);
             // Refresh from server to get updated status
             // eslint-disable-next-line react-hooks/exhaustive-deps
             fetchActiveSessions();
           }
-        }, 1000);
+        }, 500); // Update every 500ms for smoother countdown
 
         return () => clearInterval(timer);
       } else {
@@ -91,12 +94,17 @@ export default function Attendance() {
         };
 
         updateTimer();
+        // Use more frequent updates (every 500ms) for smoother countdown
         const timer = setInterval(() => {
           const remaining = updateTimer();
           if (remaining <= 0) {
             clearInterval(timer);
+            setTimeRemaining(0);
+            // Refresh from server to get updated status
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            fetchActiveSessions();
           }
-        }, 1000);
+        }, 500); // Update every 500ms for smoother countdown
 
         return () => clearInterval(timer);
       }
@@ -116,8 +124,8 @@ export default function Attendance() {
     }
     
     if (!isAdmin) {
-      // For students: poll more frequently when no active session, less frequently when active
-      const pollInterval = activeSession ? 10000 : 3000; // 3 seconds when waiting, 10 seconds when active
+      // For students: poll frequently to keep timer synchronized (same as admin)
+      const pollInterval = activeSession ? 2000 : 3000; // 2 seconds when active, 3 seconds when waiting
       
       const handleVisibilityChange = () => {
         // When page becomes visible, immediately fetch
@@ -142,12 +150,12 @@ export default function Attendance() {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     } else {
-      // For admin, refresh session data every 5 seconds to keep timer synchronized
+      // For admin, refresh session data every 2 seconds to keep timer synchronized (same as students)
       pollingIntervalRef.current = setInterval(() => {
         if (activeSession) {
           fetchActiveSessions();
         }
-      }, 5000);
+      }, 2000);
       
       return () => {
         if (pollingIntervalRef.current) {
