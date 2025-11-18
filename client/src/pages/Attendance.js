@@ -12,6 +12,7 @@ import {
   Alert,
   CircularProgress,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -23,6 +24,7 @@ import { saveAs } from 'file-saver';
 export default function Attendance() {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { getAuthHeaders, isAdmin, currentUser } = useAuth();
   const [section, setSection] = useState('1');
   const [timerDuration, setTimerDuration] = useState(60);
@@ -332,6 +334,103 @@ export default function Attendance() {
       setSubmitting(false);
     }
   };
+
+  // Check if student is accessing from mobile device
+  if (!isAdmin && isMobile) {
+    return (
+      <Container maxWidth="md" sx={{ mt: { xs: 11, sm: 14 }, mb: 4 }}>
+        <Box
+          sx={{
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            p: { xs: 3, sm: 4 },
+            mb: 4,
+            boxShadow: isDark
+              ? '0px 8px 32px rgba(0,0,0,0.5)'
+              : '0px 8px 32px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              mb: 3,
+            }}
+          >
+            📋 Attendance
+          </Typography>
+        </Box>
+
+        <Paper
+          sx={{
+            p: { xs: 4, sm: 6 },
+            mt: 3,
+            textAlign: 'center',
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 3,
+            boxShadow: isDark
+              ? '0px 8px 32px rgba(0,0,0,0.5)'
+              : '0px 8px 32px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'inline-flex',
+              p: 3,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+              mb: 3,
+            }}
+          >
+            <Typography sx={{ fontSize: 60 }}>📱</Typography>
+          </Box>
+          <Typography 
+            variant="h5" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 600, 
+              mb: 2,
+              color: isDark ? '#fca5a5' : '#dc2626',
+            }}
+          >
+            Mobile Access Restricted
+          </Typography>
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            sx={{ 
+              mb: 2,
+              fontSize: { xs: '0.95rem', sm: '1rem' },
+              lineHeight: 1.6,
+            }}
+          >
+            Please open the attendance page from a laptop or desktop only.
+          </Typography>
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ 
+              fontStyle: 'italic',
+              opacity: 0.8,
+            }}
+          >
+            Attendance would require desktop or laptop as per policy.
+          </Typography>
+        </Paper>
+      </Container>
+    );
+  }
 
   if (!isAdmin) {
     // Student view
