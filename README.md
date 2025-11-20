@@ -235,10 +235,6 @@ npm run build
 firebase deploy --only hosting
 ```
 
-## 🎨 Screenshots
-
-> _Note: Add screenshots of your application here to showcase the UI_
-
 ## 🤝 Contributing
 
 This is a university project. Contributions, issues, and feature requests are welcome!
